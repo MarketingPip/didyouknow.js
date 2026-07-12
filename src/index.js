@@ -37,8 +37,8 @@ export async function fetchPageHTML(pageTitle) {
 
   const data = await res.json();
   if (data.error) throw new Error(`API: ${data.error.info}`);
-
-  return data.parse.text["*"];
+ 
+  return {data, url:`${API_BASE}?${params}`};
 }
 
 // --- Text Cleanup Cleaned up ---
@@ -91,13 +91,22 @@ export function createDidYouKnowFetcher(parseHTMLFn) {
     const page = `Wikipedia:Did_you_know_archive/${year}/${month}`;
 
     const html = await fetchPageHTML(page);
-    const doc = await parseHTMLFn(html);
+    const url  = html.url;
+    const data = html.data;
+    const doc = await parseHTMLFn(data.parse.text["*"]);
     const facts = extractFactsFromDoc(doc);
 
     if (!facts.length) return didyouknow(); // Retry
-    return facts;
+    return {page,url, pageid:html.data.parse.pageid, facts};
   }
 
 
   return  didyouknow;
 }
+
+
+const parseHTML = (html) => new DOMParser().parseFromString(html, "text/html");
+
+const  didyouknow = createDidYouKnowFetcher(parseHTML);
+
+console.log(await didyouknow())
