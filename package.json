@@ -9,6 +9,13 @@
     "README.md",
     "LICENSE"
   ],
+  "exports": {
+    ".": {
+      "browser": "src/browser.js",
+      "node": "src/node.js",
+      "default": "src/browser.js"
+    }
+  },
   "scripts": {
     "test": "node --test src/tests/onthisday.test.js",
     "build": "webpack --config ./src/webpack.config.js"
