@@ -98,10 +98,6 @@ export function createDidYouKnowFetcher(parseHTMLFn) {
     return facts;
   }
 
-  async function didyouknowrun() {
-    const facts = await didyouknow();
-    return facts[Math.floor(Math.random() * facts.length)];
-  }
 
-  return { didyouknow, didyouknowrun };
+  return  didyouknow;
 }
