@@ -1,16 +1,11 @@
 // webpack.config.js
-const fs = require('fs');
 const path = require('path');
-
 const packageData = require('../package.json');
 const TerserPlugin = require('terser-webpack-plugin');
 
-// taken from https://github.com/webpack/webpack/issues/12506#issuecomment-1360810560
 class RemoveLicenseFilePlugin {
     apply(compiler) {
         compiler.hooks.emit.tap("RemoveLicenseFilePlugin", (compilation) => {
-            // compliation has assets to output
-            // console.log(compilation.assets);
             for (let name in compilation.assets) {
                 if (name.endsWith("LICENSE.txt")) {
                     delete compilation.assets[name];
@@ -20,16 +15,8 @@ class RemoveLicenseFilePlugin {
     }
 }
 
-
-module.exports = {
-  entry: './src/onthisday.js',
-  output: {
-    path: path.resolve(__dirname, '..', 'dist'),
-    filename: packageData.main.split("/").pop(),
-    library: {
-      type: 'module',
-    },
-  },
+// Shared settings between both builds
+const baseConfig = {
   experiments: {
     outputModule: true,
   },
@@ -57,3 +44,38 @@ module.exports = {
     extensions: ['.js'],
   },
 };
+
+module.exports = [
+  // --- Browser Build ---
+  {
+    ...baseConfig,
+    name: 'browser',
+    target: 'web',
+    entry: './src/browser.js',
+    output: {
+      path: path.resolve(__dirname, '..', 'dist'),
+      filename: 'browser.js',
+      library: {
+        type: 'module',
+      },
+    },
+  },
+
+  // --- Node Build ---
+  {
+    ...baseConfig,
+    name: 'node',
+    target: 'node',
+    entry: './src/node.js',
+    output: {
+      path: path.resolve(__dirname, '..', 'dist'),
+      filename: packageData.main.split("/").pop(),
+      library: {
+        type: 'module',
+      },
+    },
+    // CRITICAL: Don't bundle linkedom into the Node build.
+    // Node will require it at runtime from node_modules.
+    externals: ['linkedom'],
+  },
+];
